@@ -2,14 +2,18 @@
 var nodeStatic = require('node-static');
 
 var config = require('./config.js');
-var fcClass = require('./fileController.js');
+var getIP = require('./lib/getIP.js')
+var frClass = require('./lib/fileRemover.js');
 
 var PORT = config.port;
 var TIMEOUT = config.timeout;
+var PUBLIC_PATH = __dirname + '/public';
 
-var fileCtrl = new fcClass('/public', TIMEOUT);
-var file = new nodeStatic.Server('./public');
- 
+var fileRemover = new frClass( PUBLIC_PATH, TIMEOUT );
+var file = new nodeStatic.Server( PUBLIC_PATH );
+
+fileRemover.addExtension(['rar', 'pdf']);
+fileRemover.removeExtension(['rar']);
 require('http').createServer( (req, res) => {
   req.addListener('end', () => {
     file.serve(req, res, (err, result) => {
@@ -19,19 +23,11 @@ require('http').createServer( (req, res) => {
         res.end();
       } else {
         console.log( '> %s  %s %s', req.url, req.method, getIP(req) );
-        fileCtrl.removeFile(req.url);
+        fileRemover.removeFile(req.url);
       }
     });
   }).resume();
 }).listen(PORT || 8080, () => {
-  console.log('Static server start!')
+  console.log('Static autoremove content server start!')
+  console.log( 'Extesion for remove: ', fileRemover.getExtList() )
 });
-
-function getIP(req) {
-  var ip = req.headers['x-forwarded-for'] || 
-    req.connection.remoteAddress || 
-    req.socket.remoteAddress ||
-    req.connection.socket.remoteAddress;
-
-  return ip.replace('::ffff:', '');
-}
