@@ -1,4 +1,4 @@
-//'use strict';
+
 var nodeStatic = require('node-static');
 
 var config = require('./config.js');
@@ -13,7 +13,7 @@ var fileRemover = new frClass( PUBLIC_PATH, TIMEOUT );
 var file = new nodeStatic.Server( PUBLIC_PATH );
 
 fileRemover.addExtension(['rar', 'pdf']);
-fileRemover.removeExtension(['rar']);
+//fileRemover.removeExtension(['pdf']);
 require('http').createServer( (req, res) => {
   req.addListener('end', () => {
     file.serve(req, res, (err, result) => {
